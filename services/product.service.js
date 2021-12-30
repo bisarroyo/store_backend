@@ -1,31 +1,18 @@
-const faker = require('faker');
 const boom = require('@hapi/boom');
+
+const Product = require('../models/product.model');
 
 class ProductService {
   constructor() {
-    this.products = [];
-    this.generate()
-  }
-
-  generate() {
-    for (let i = 0; i < 10; i++) {
-      this.products.push({
-        id: faker.datatype.uuid(),
-        name: faker.commerce.productName(),
-        description: faker.lorem.sentence(),
-        price: faker.commerce.price(),
-        qty: faker.datatype.number(),
-        image: faker.image.imageUrl()
-      })
-    }
   }
 
   async getProducts() {
-    return this.products
+    const products = await Product.find();
+    return products;
   }
 
   async getProduct(id) {
-    const product = this.products.find(product => product.id === id)
+    const product = await Product.findById(id);
     if (!product) {
       throw boom.notFound()
     }
@@ -33,33 +20,27 @@ class ProductService {
   }
 
   async createProduct(product) {
-    const newProduct = {
-      id: faker.random.uuid(),
-      ...product
-    }
-    this.products.push(newProduct);
+    const newProduct = new Product(product);
+    newProduct.save((err) => {
+      if (err) {
+        throw boom.badRequest('Cant create the product');
+      }
+    })
     return newProduct;
   }
 
   async updateProduct(id, changes) {
-    const index = this.products.findIndex(p => p.id === id)
-    if (index === -1) {
-      throw boom.notFound()
-    }
-    const product = this.products[index]
-    this.products[index] = {
-      ...product,
-      ...changes
-    }
-    return this.products[index]
+    const update = Product.findByIdAndUpdate(id, changes, (err, result) => {
+      if (err) {
+        throw boom.notFound('cant find product');
+      }
+      return console.log(result);
+    });
+    return update;
   }
 
   async deleteProduct(id) {
-    const index = this.products.findIndex(p => p.id === id)
-    if (index === -1) {
-      throw boom.notFound()
-    }
-    this.products.splice(index, 1)
+    await Product.deleteOne({id});
     return { message: 'Product deleted', id: id }
   }
  
