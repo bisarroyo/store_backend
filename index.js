@@ -1,23 +1,16 @@
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose');
-require('dotenv').config();
+const morgan = require('morgan');
 
-const user = process.env.DB_USER;
-const password = process.env.DB_PASSWORD;
-const dbName = process.env.DB_NAME;
-
-const URL = `mongodb+srv://${user}:${password}@cluster0.2mpwz.mongodb.net/${dbName}?retryWrites=true&w=majority`;
-
-mongoose.connect(URL).
-  then(() => console.log('Connected to MongoDB')).
-  catch(error => console.log(error));
+require('./database');
+const createRoles = require('./libs/initialSetup');
 
 const routerApi = require('./routes');
 const { logError, errorHandler, boonErrorHandler } = require('./middlewares/error.handler');
 
 const app = express();
-const port = process.env.PORT || 3000;
+createRoles();
+const port = process.env.PORT || 4000;
 
 app.use(express.json());
 
@@ -33,9 +26,10 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.use(morgan('dev'));
 
 app.get('/', (req, res) => {
-  res.send('Hello World!');
+  res.send(`Visitas a la pagina`);
 });
 
 routerApi(app);

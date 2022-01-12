@@ -1,25 +1,42 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+const { Schema, model } = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 const userSchema = new Schema({
   name: {
     type: String,
     required: true
   },
-  last_name: {
-    type: String,
-    required: true
-  },
   email: {
     type: String,
-    required: true
+    unique: true,
+    required: true,
+    toLowerCase: true,
   },
   password: {
-    type: Number,
-    required: true
+    type: String,
+    required: true,
   },
-});
+  roles: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "role"
+    },
+  ],
+},{
+  timestamps: true,
+  versionKey: false
+}
+);
 
-const user = mongoose.model('User', userSchema);
+userSchema.statics.encryptPassword = async (password) => {
+  const salt = await bcrypt.genSalt(10);
+  return await bcrypt.hash(password, salt);
+};
+
+userSchema.statics.comparePassword = async (password, receivedPassword) => {
+  return await bcrypt.compare(password, receivedPassword);
+};
+
+const user = model('User', userSchema);
 
 module.exports = user;

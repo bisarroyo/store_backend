@@ -3,12 +3,13 @@ const express = require('express');
 const ProductService = require('./../services/product.service');
 const validatorHandler = require('./../middlewares/validator.handler');
 const { crateProductSchema, updateProductSchema, getProductSchema } = require('./../schemas/product.schema');
+const {verifyToken, isAdmin} = require('./../middlewares/token.handler');
 
 const router = express.Router();
 const service = new ProductService();
 
 
-router.get('/', async (req, res, next) => {
+router.get('/',[verifyToken, isAdmin], async (req, res, next) => {
   try {
     const products = await service.getProducts();
     res.json(products);

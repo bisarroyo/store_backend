@@ -14,13 +14,22 @@ class ProductService {
   async getProduct(id) {
     const product = await Product.findById(id);
     if (!product) {
-      throw boom.notFound()
+      throw boom.notFound('Cant find product');
     }
     return product
   }
 
   async createProduct(product) {
-    const newProduct = new Product(product);
+    const {name, description, price, qty, image} = product;
+    const newProduct = new Product(
+      {
+        name,
+        description,
+        price,
+        qty,
+        image,
+      }
+    );
     newProduct.save((err) => {
       if (err) {
         throw boom.badRequest('Cant create the product');
