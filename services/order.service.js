@@ -3,8 +3,9 @@ const Order = require('../models/order.model');
 const Product = require('../models/product.model');
 
 class orderService {
-  async getOrders() {
-    const orders = await Order.find();
+  async getOrders(user) {
+    const {id} = user;
+    const orders = await Order.find({user: {$eq: id}});
     return orders;
   }
   
@@ -19,23 +20,17 @@ class orderService {
   async createOrder(order, user) {
     const {products, total} = order;
     const {id} = user;
-    const productsIds = products.map(product => product._id);
     const newOrder = await new Order(
       {
         user: id,
-        products: productsIds,
+        products,
         total,
       }
     );
-    const totalOrder = (products, total) => {
-      const productValidate = products.reduce((acc, product) => {
-        return acc + product.price;
-      }, 0);
-      if(total !== productValidate) {
-        return boom.badRequest('Total order is not valid');
-      }
+    const productList = await Product.find({_id: {$in: products}});
+    if (productList.length !== products.length) {
+      throw boom.badRequest('Invalid product');
     }
-    totalOrder(products, total);
     await newOrder.save();
     return newOrder;
   }

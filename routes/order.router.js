@@ -23,13 +23,22 @@ router.post('/', verifyToken, async (req, res) => {
 
 router.get('/', verifyToken, async (req, res) => {
   try {
-    const orders = await service.getOrders();
-    res.json(req.user);
+    const orders = await service.getOrders(req.user);
+    res.json(orders);
   }
   catch(err) {
     console.error(err);
   }
 });
 
+router.patch('/:id', verifyToken, async (req, res) => {
+  try {
+    const order = await service.updateOrder(req.params.id, req.body);
+    res.json(order);
+  }
+  catch(err) {
+    console.error(err);
+  }
+});
 
 module.exports = router;
